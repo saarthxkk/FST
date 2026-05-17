@@ -53,6 +53,15 @@ const setInfo = {
 // ============================================
 // SET SELECTION
 // ============================================
+// ============================================
+// AUTHOR → SET SELECTION
+// ============================================
+function goToSets() {
+    document.getElementById("authorScreen").style.display = "none";
+    document.getElementById("setSelectionScreen").style.display = "block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 function selectSet(setNum) {
     selectedSetNumber = setNum;
     const setMap = { 1: quizData, 2: quizDataSet2, 3: quizDataSet3, 4: quizDataSet4 };

@@ -194,54 +194,127 @@ function dismissWarning() {
     enterFullscreen();
 }
 
+let savedWindowWidth = 0;
+let savedWindowHeight = 0;
+
 function startSecurityMonitor() {
+    // Save initial window dimensions
+    savedWindowWidth = window.innerWidth;
+    savedWindowHeight = window.innerHeight;
+
     // Tab visibility change
     document.addEventListener('visibilitychange', handleVisibilityChange);
     // Fullscreen exit detection
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    // Window blur — detects slide-over apps, split view, app switcher
+    window.addEventListener('blur', handleWindowBlur);
+    // Window resize — detects slide-over panels changing window size
+    window.addEventListener('resize', handleWindowResize);
+    // Block keyboard shortcuts (Cmd+Tab, Cmd+W, Ctrl+C, etc.)
+    document.addEventListener('keydown', handleKeyBlock, true);
+    // Block right-click
+    document.addEventListener('contextmenu', handleContextMenu);
+    // Block copy/cut/paste
+    document.addEventListener('copy', handleCopyPaste);
+    document.addEventListener('cut', handleCopyPaste);
+    document.addEventListener('paste', handleCopyPaste);
+    // Block text selection
+    document.body.classList.add('no-select');
 }
 
 function stopSecurityMonitor() {
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     document.removeEventListener('fullscreenchange', handleFullscreenChange);
     document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    window.removeEventListener('blur', handleWindowBlur);
+    window.removeEventListener('resize', handleWindowResize);
+    document.removeEventListener('keydown', handleKeyBlock, true);
+    document.removeEventListener('contextmenu', handleContextMenu);
+    document.removeEventListener('copy', handleCopyPaste);
+    document.removeEventListener('cut', handleCopyPaste);
+    document.removeEventListener('paste', handleCopyPaste);
+    document.body.classList.remove('no-select');
+}
+
+function triggerViolation() {
+    tabSwitchCount++;
+    playAlarmSound();
+    if (tabSwitchCount > MAX_WARNINGS) {
+        isTestActive = false;
+        stopSecurityMonitor();
+        const overlay = document.getElementById('securityOverlay');
+        if (overlay) overlay.remove();
+        alert('🚫 You exceeded the maximum warnings. Your test is being submitted.');
+        exitFullscreen();
+        submitTest(true);
+    } else {
+        showWarningOverlay(tabSwitchCount);
+    }
 }
 
 function handleVisibilityChange() {
     if (!isTestActive) return;
-    if (document.hidden) {
-        tabSwitchCount++;
-        playAlarmSound();
-        if (tabSwitchCount > MAX_WARNINGS) {
-            isTestActive = false;
-            stopSecurityMonitor();
-            const overlay = document.getElementById('securityOverlay');
-            if (overlay) overlay.remove();
-            alert('🚫 You exceeded the maximum tab switches. Your test is being submitted.');
-            exitFullscreen();
-            submitTest(true);
-        } else {
-            showWarningOverlay(tabSwitchCount);
-        }
-    }
+    if (document.hidden) triggerViolation();
 }
 
 function handleFullscreenChange() {
     if (!isTestActive) return;
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        // User exited fullscreen — treat as tab switch
-        tabSwitchCount++;
-        playAlarmSound();
-        if (tabSwitchCount > MAX_WARNINGS) {
-            isTestActive = false;
-            stopSecurityMonitor();
-            alert('🚫 You exceeded the maximum tab switches. Your test is being submitted.');
-            submitTest(true);
-        } else {
-            showWarningOverlay(tabSwitchCount);
-        }
+        triggerViolation();
     }
+}
+
+function handleWindowBlur() {
+    if (!isTestActive) return;
+    // Window lost focus — slide-over, app switcher, or another app opened
+    triggerViolation();
+}
+
+function handleWindowResize() {
+    if (!isTestActive) return;
+    const widthDiff = Math.abs(window.innerWidth - savedWindowWidth);
+    const heightDiff = Math.abs(window.innerHeight - savedWindowHeight);
+    // If window shrank significantly (slide-over panel appeared)
+    if (widthDiff > 100 || heightDiff > 100) {
+        triggerViolation();
+        // Update saved dimensions so it doesn't keep firing
+        savedWindowWidth = window.innerWidth;
+        savedWindowHeight = window.innerHeight;
+    }
+}
+
+function handleKeyBlock(e) {
+    if (!isTestActive) return;
+    const blocked = [
+        // Cmd/Ctrl + Tab, W, T, N, L, R, H, Q, Space
+        (e.metaKey || e.ctrlKey) && ['Tab', 'KeyW', 'KeyT', 'KeyN', 'KeyL', 'KeyR', 'KeyH', 'KeyQ', 'KeyC', 'KeyV', 'KeyX', 'KeyA'].includes(e.code),
+        // Alt+Tab
+        e.altKey && e.code === 'Tab',
+        // F5, F11, F12
+        ['F5', 'F11', 'F12'].includes(e.code),
+        // Escape
+        e.code === 'Escape',
+        // Cmd+Shift+T (reopen tab)
+        (e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'KeyT',
+    ];
+    if (blocked.some(Boolean)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }
+}
+
+function handleContextMenu(e) {
+    if (!isTestActive) return;
+    e.preventDefault();
+    return false;
+}
+
+function handleCopyPaste(e) {
+    if (!isTestActive) return;
+    e.preventDefault();
+    return false;
 }
 
 // ============================================

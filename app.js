@@ -18,10 +18,6 @@ const MAX_WARNINGS = 3;
 let isTestActive = false;
 let audioCtx = null;
 
-// Google Sheet Backend
-const GOOGLE_SHEET_URL = "YOUR_APPS_SCRIPT_URL_HERE";
-const GOOGLE_SHEET_VIEW = "https://docs.google.com/spreadsheets/d/10KT6uJlqzGeMqgG6BxQjCPtfxqSIYQPwuArQASGQrVY/edit?usp=sharing";
-
 // Section info for preview
 const setInfo = {
     1: [
@@ -538,8 +534,6 @@ function showResults(results) {
     else if (results.percentage < 100) { emoji = "🌟"; msg = "Outstanding performance!"; }
     else { emoji = "🏆"; msg = "Perfect score! Incredible!"; }
 
-    const warningText = tabSwitchCount > 0 ? `<div style="margin-top:8px;font-size:13px;color:var(--accent-red);">⚠️ Tab Switches: <strong>${tabSwitchCount}</strong></div>` : `<div style="margin-top:8px;font-size:13px;color:#4caf50;">✅ No tab switches — Fair attempt!</div>`;
-
     el.innerHTML = `
         <div class="results-header pop-in">
             <div class="header-accent"></div>
@@ -552,76 +546,21 @@ function showResults(results) {
                     <span class="score-label">${results.totalCorrect}/${results.totalQuestions}</span>
                 </div>
                 <div style="margin-top:16px;font-size:14px;color:var(--text-secondary);">⏱️ Time: <strong>${results.timeTaken}</strong></div>
-                ${warningText}
                 <div class="section-scores">
                     ${results.sectionResults.map(sr => `<div class="section-score-card"><div class="section-score-label">Section ${sr.id}</div><div class="section-score-value">${sr.correct}/${sr.total}</div></div>`).join("")}
                 </div>
-                <div id="saveStatus" style="margin-top:16px;font-size:13px;color:var(--text-secondary);">📤 Saving results...</div>
-                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px;">
-                    <button class="review-toggle" onclick="toggleReview()">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        Review Answers
-                    </button>
-                    <button class="btn-leaderboard" onclick="window.open(GOOGLE_SHEET_VIEW, '_blank')">
-                        🏆 View Leaderboard
-                    </button>
-                    <button class="btn-primary" onclick="goHome()">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                        Back to Sets
-                    </button>
-                </div>
+                <button class="review-toggle" onclick="toggleReview()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Review All Answers
+                </button>
+                <button class="btn-primary" onclick="goHome()" style="margin-left:12px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                    Back to Sets
+                </button>
             </div>
         </div>
         <div id="reviewContainer" style="display:none;">${buildReview()}</div>
     `;
-
-    // Send results to Google Sheet
-    sendResultsToSheet(results);
-}
-
-// ============================================
-// GOOGLE SHEET BACKEND
-// ============================================
-function sendResultsToSheet(results) {
-    if (GOOGLE_SHEET_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
-        document.getElementById("saveStatus").innerHTML = `⚠️ Sheet URL not configured. <a href="${GOOGLE_SHEET_VIEW}" target="_blank" style="color:var(--primary);">View Sheet</a>`;
-        return;
-    }
-
-    const sectionMap = {};
-    results.sectionResults.forEach(sr => {
-        sectionMap[`section${sr.id}`] = `${sr.correct}/${sr.total}`;
-    });
-
-    const payload = {
-        name: results.name,
-        setNumber: results.setNumber,
-        totalCorrect: results.totalCorrect,
-        totalQuestions: results.totalQuestions,
-        percentage: results.percentage,
-        warnings: tabSwitchCount,
-        timeTaken: results.timeTaken,
-        sectionA: sectionMap.sectionA || "-",
-        sectionB: sectionMap.sectionB || "-",
-        sectionC: sectionMap.sectionC || "-",
-        sectionD: sectionMap.sectionD || "-",
-        sectionE: sectionMap.sectionE || "-"
-    };
-
-    fetch(GOOGLE_SHEET_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-    .then(() => {
-        const el = document.getElementById("saveStatus");
-        if (el) el.innerHTML = `✅ Results saved! <a href="${GOOGLE_SHEET_VIEW}" target="_blank" style="color:var(--primary);font-weight:600;">View Leaderboard →</a>`;
-    })
-    .catch(() => {
-        const el = document.getElementById("saveStatus");
-        if (el) el.textContent = "⚠️ Could not save results. Check connection.";
-    });
 }
 
 // ============================================

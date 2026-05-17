@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systems Thinking — Practice Test</title>
+    <meta name="description" content="Practice test for Systems Thinking concepts including BoT Graphs, CLD, Stock-Flow, Leverage Points, and Case Studies">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="form-container">
+        <!-- Header Banner -->
+        <div class="form-header" id="formHeader">
+            <div class="header-accent"></div>
+            <div class="header-content">
+                <h1 id="mainTitle">Systems Thinking — Practice Test</h1>
+                <p class="subtitle" id="mainSubtitle">Case-Based Logical MCQs & Fill in the Blanks</p>
+                <div class="header-meta">
+                    <span class="meta-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 6v6l4 2"/></svg> ~45 mins</span>
+                    <span class="meta-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg> 60 Questions</span>
+                    <span class="meta-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 5 Sections</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SET SELECTION SCREEN -->
+        <div id="setSelectionScreen">
+            <div class="card">
+                <div class="card-accent"></div>
+                <div class="card-body" style="text-align:center;">
+                    <div class="welcome-icon">📝</div>
+                    <h2 style="margin-bottom:6px;">Choose Your Question Paper</h2>
+                    <p style="color:var(--text-secondary);margin-bottom:28px;">Select a set to begin your practice test</p>
+                    <div class="set-cards-grid">
+                        <!-- SET 1 -->
+                        <div class="set-card" onclick="selectSet(1)" id="setCard1">
+                            <div class="set-card-badge">SET 1</div>
+                            <h3>Systems Thinking — Set 1</h3>
+                            <ul class="set-topics">
+                                <li><span class="section-letter">A</span> Behaviour Over Time Graphs (BoT)</li>
+                                <li><span class="section-letter">B</span> Causal Loop Diagrams (CLD)</li>
+                                <li><span class="section-letter">C</span> Stock, Flow & Dynamic Equilibrium</li>
+                                <li><span class="section-letter">D</span> Leverage Points & Mental Models</li>
+                                <li><span class="section-letter">E</span> City Pollution — Fill in the Blanks</li>
+                            </ul>
+                            <div class="set-card-footer">40 MCQs + 20 Fill-ups</div>
+                        </div>
+                        <!-- SET 2 -->
+                        <div class="set-card" onclick="selectSet(2)" id="setCard2">
+                            <div class="set-card-badge">SET 2</div>
+                            <h3>Systems Thinking — Set 2</h3>
+                            <ul class="set-topics">
+                                <li><span class="section-letter">A</span> Iceberg Model & Systemic Problems</li>
+                                <li><span class="section-letter">B</span> System Archetypes & Game Theory</li>
+                                <li><span class="section-letter">C</span> From BoT to CLD</li>
+                                <li><span class="section-letter">D</span> Stocks, Flows, Buffers & Delays</li>
+                                <li><span class="section-letter">E</span> Online Platform — Fill in the Blanks</li>
+                            </ul>
+                            <div class="set-card-footer">40 MCQs + 20 Fill-ups</div>
+                        </div>
+                        <!-- SET 3 -->
+                        <div class="set-card" onclick="selectSet(3)" id="setCard3">
+                            <div class="set-card-badge">SET 3</div>
+                            <h3>Systems Thinking — Set 3</h3>
+                            <ul class="set-topics">
+                                <li><span class="section-letter">A</span> System, Elements & Interconnections</li>
+                                <li><span class="section-letter">B</span> Boundary, Environment & Open Systems</li>
+                                <li><span class="section-letter">C</span> Iceberg Model Deep Dive</li>
+                                <li><span class="section-letter">D</span> Archetypes, Feedback & Game Theory</li>
+                                <li><span class="section-letter">E</span> Digital Distraction — Fill in the Blanks</li>
+                            </ul>
+                            <div class="set-card-footer">40 MCQs + 20 Fill-ups</div>
+                        </div>
+                        <!-- SET 4 -->
+                        <div class="set-card" onclick="selectSet(4)" id="setCard4">
+                            <div class="set-card-badge">SET 4</div>
+                            <h3>Systems Thinking — Set 4</h3>
+                            <ul class="set-topics">
+                                <li><span class="section-letter">A</span> BoT, Variables & Problem Formulation</li>
+                                <li><span class="section-letter">B</span> CLD, S/O Links & Delays</li>
+                                <li><span class="section-letter">C</span> Fixes That Fail & Drifting Goals</li>
+                                <li><span class="section-letter">D</span> Mental Models & Ladder of Inference</li>
+                                <li><span class="section-letter">E</span> Hostel Food Waste — Fill in the Blanks</li>
+                            </ul>
+                            <div class="set-card-footer">40 MCQs + 20 Fill-ups</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Screen (hidden initially) -->
+        <div class="card start-card" id="startScreen" style="display:none;">
+            <div class="card-accent"></div>
+            <div class="card-body">
+                <div class="welcome-icon">🚀</div>
+                <h2 id="selectedSetTitle">Set 1 Selected</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.7;" id="selectedSetDesc">
+                    You are about to take <strong>Set 1</strong>. Enter your name to begin.
+                </p>
+                <div id="sectionPreviewContainer" class="section-preview-grid"></div>
+                <div class="input-group" style="margin-top: 28px;">
+                    <label for="studentName">Your Name <span class="required">*</span></label>
+                    <input type="text" id="studentName" placeholder="Enter your name" required>
+                </div>
+                <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                    <button class="btn-secondary" onclick="goBackToSets()" style="margin-top:24px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                        Change Set
+                    </button>
+                    <button class="btn-primary" id="startBtn" onclick="startTest()">
+                        Start Test
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quizContainer" style="display: none;">
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-info">
+                    <span id="progressText">Section 1 of 5</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            <div id="sectionsWrapper"></div>
+            <div class="nav-buttons" id="navButtons">
+                <button class="btn-secondary" id="prevBtn" onclick="prevSection()" style="display:none;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    Previous
+                </button>
+                <button class="btn-primary" id="nextBtn" onclick="nextSection()">
+                    Next Section
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+                <button class="btn-submit" id="submitBtn" onclick="submitTest()" style="display:none;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    Submit Test
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" style="display: none;"></div>
+
+        <!-- Footer -->
+        <div class="form-footer">
+            <p>Systems Thinking Practice Test • End Semester Preparation</p>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="questions2.js"></script>
+    <script src="questions3.js"></script>
+    <script src="questions4.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

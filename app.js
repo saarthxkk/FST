@@ -12,6 +12,12 @@ let timerInterval = null;
 const TIME_LIMIT = 45 * 60; // 45 minutes in seconds
 let timeRemaining = TIME_LIMIT;
 
+// Security
+let tabSwitchCount = 0;
+const MAX_WARNINGS = 3;
+let isTestActive = false;
+let audioCtx = null;
+
 // Section info for preview
 const setInfo = {
     1: [
@@ -100,6 +106,8 @@ function startTest() {
     studentName = name;
     testStartTime = Date.now();
     timeRemaining = TIME_LIMIT;
+    tabSwitchCount = 0;
+    isTestActive = true;
 
     // Update header
     document.getElementById("mainTitle").textContent = `Systems Thinking — Set ${selectedSetNumber}`;
@@ -109,7 +117,122 @@ function startTest() {
     document.getElementById("quizContainer").style.display = "block";
     showSection(0);
     startTimer();
+    enterFullscreen();
+    startSecurityMonitor();
     window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ============================================
+// SECURITY — Fullscreen, Tab Switch, Alarm
+// ============================================
+function enterFullscreen() {
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (req) req.call(el).catch(() => {});
+}
+
+function exitFullscreen() {
+    const req = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if (req && document.fullscreenElement) req.call(document).catch(() => {});
+}
+
+function playAlarmSound() {
+    try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        // Play 3 loud beeps
+        for (let i = 0; i < 3; i++) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'square';
+            osc.frequency.value = 880 + (i * 200);
+            gain.gain.value = 0.8;
+            osc.start(audioCtx.currentTime + i * 0.3);
+            osc.stop(audioCtx.currentTime + i * 0.3 + 0.25);
+        }
+    } catch (e) {}
+}
+
+function showWarningOverlay(count) {
+    // Remove existing overlay
+    const existing = document.getElementById('securityOverlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'securityOverlay';
+    overlay.innerHTML = `
+        <div class="security-modal">
+            <div class="security-icon">🚨</div>
+            <h2>Tab Switch Detected!</h2>
+            <p>You switched away from the test window.</p>
+            <div class="warning-counter">
+                <span class="warning-dot ${count >= 1 ? 'active' : ''}"></span>
+                <span class="warning-dot ${count >= 2 ? 'active' : ''}"></span>
+                <span class="warning-dot ${count >= 3 ? 'active' : ''}"></span>
+            </div>
+            <p class="warning-text">Warning ${count} of ${MAX_WARNINGS}</p>
+            <p class="warning-sub">${MAX_WARNINGS - count} warning(s) remaining. On the next violation, your test will be auto-submitted.</p>
+            <button onclick="dismissWarning()" class="btn-primary" style="margin-top:16px;">I Understand — Resume Test</button>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+function dismissWarning() {
+    const overlay = document.getElementById('securityOverlay');
+    if (overlay) overlay.remove();
+    enterFullscreen();
+}
+
+function startSecurityMonitor() {
+    // Tab visibility change
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Fullscreen exit detection
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+}
+
+function stopSecurityMonitor() {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+}
+
+function handleVisibilityChange() {
+    if (!isTestActive) return;
+    if (document.hidden) {
+        tabSwitchCount++;
+        playAlarmSound();
+        if (tabSwitchCount > MAX_WARNINGS) {
+            isTestActive = false;
+            stopSecurityMonitor();
+            const overlay = document.getElementById('securityOverlay');
+            if (overlay) overlay.remove();
+            alert('🚫 You exceeded the maximum tab switches. Your test is being submitted.');
+            exitFullscreen();
+            submitTest(true);
+        } else {
+            showWarningOverlay(tabSwitchCount);
+        }
+    }
+}
+
+function handleFullscreenChange() {
+    if (!isTestActive) return;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        // User exited fullscreen — treat as tab switch
+        tabSwitchCount++;
+        playAlarmSound();
+        if (tabSwitchCount > MAX_WARNINGS) {
+            isTestActive = false;
+            stopSecurityMonitor();
+            alert('🚫 You exceeded the maximum tab switches. Your test is being submitted.');
+            submitTest(true);
+        } else {
+            showWarningOverlay(tabSwitchCount);
+        }
+    }
 }
 
 // ============================================
@@ -346,6 +469,9 @@ function submitTest(autoSubmit = false) {
     }
 
     stopTimer();
+    isTestActive = false;
+    stopSecurityMonitor();
+    exitFullscreen();
     const results = calculateResults();
     document.getElementById("quizContainer").style.display = "none";
     showResults(results);
@@ -496,11 +622,15 @@ function toggleReview() {
 // ============================================
 function goHome() {
     stopTimer();
+    isTestActive = false;
+    stopSecurityMonitor();
+    exitFullscreen();
     userAnswers = {};
     currentSection = 0;
     selectedSetNumber = null;
     activeQuizData = null;
     timeRemaining = TIME_LIMIT;
+    tabSwitchCount = 0;
 
     document.getElementById("resultsScreen").style.display = "none";
     document.getElementById("resultsScreen").innerHTML = "";
@@ -538,5 +668,5 @@ function launchConfetti() {
 
 // Shake + pulse animations
 const s = document.createElement("style");
-s.textContent = `@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`;
+s.textContent = `@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}#securityOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;animation:fadeIn .3s ease}.security-modal{background:#fff;border-radius:20px;padding:48px 40px;text-align:center;max-width:440px;width:90%;box-shadow:0 25px 60px rgba(0,0,0,0.4);animation:popIn .4s ease}.security-icon{font-size:64px;margin-bottom:16px;animation:shake .5s ease}.security-modal h2{font-size:22px;font-weight:800;color:#c62828;margin-bottom:8px}.security-modal p{font-size:14px;color:#555;line-height:1.6}.warning-counter{display:flex;gap:12px;justify-content:center;margin:20px 0}.warning-dot{width:20px;height:20px;border-radius:50%;background:#e0e0e0;transition:all .3s}.warning-dot.active{background:#c62828;box-shadow:0 0 12px rgba(198,40,40,0.5)}.warning-text{font-size:18px;font-weight:800;color:#c62828}.warning-sub{font-size:13px;color:#888;margin-top:4px}@keyframes fadeIn{from{opacity:0}to{opacity:1}}`;
 document.head.appendChild(s);

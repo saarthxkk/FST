@@ -920,6 +920,26 @@ body {
     border-left: 4px solid var(--primary);
 }
 
+.btn-leaderboard {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #ff9800, #ff6d00);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-leaderboard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
 /* ========================================
    AUTHOR SPLASH PAGE
    ======================================== */
